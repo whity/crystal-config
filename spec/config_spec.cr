@@ -32,4 +32,9 @@ describe "Config" do
 
         c.to_h.should(eq(hash))
     end
+
+    it "has_key" do
+        c = from_yaml
+        c.has_key?("xpto").should(eq(false))
+    end
 end
