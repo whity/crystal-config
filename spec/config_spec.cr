@@ -14,23 +14,15 @@ describe "Config" do
     from_yaml["hello"].should(eq("olá"))
   end
 
-  it "to hash" do
-    to_cmp = YAML.load(File.open("./spec/spec.yml").gets_to_end)
-    c = from_yaml
-
-    c.to_h.should(eq(to_cmp))
-  end
-
   it "merge" do
-    to_merge = Config::Hash.new({"merged" => {"12" => "134", "11" => "1222"}})
+    to_merge = Config::Hash.new({"merged" => {"12" => "134", "11" => "1222", "int" => Int32}})
     c = from_yaml
 
-    hash = from_yaml.to_h
-    hash.merge!(to_merge.to_h)
+    all_keys = to_merge.keys + c.keys
+    all_keys.sort!
 
     c = c.merge(to_merge)
-
-    c.to_h.should(eq(hash))
+    c.keys.sort.should(eq(all_keys))
   end
 
   it "has_key" do

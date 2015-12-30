@@ -3,19 +3,24 @@ require "./version"
 
 module Config
   class Hash
-    alias Type = ::JSON::Type
+    class Val
+      getter :value
 
-    JSON.mapping({
-      _data:  ::Hash,
-      _index: ::Hash,
-    })
+      def initialize(@value)
+      end
+    end
+
+    #alias Value = Val | Array(Value) | ::Hash(String, Value)
+    
+    def initialize()
+      @_index = {} of String => Val
+    end
 
     def initialize(data : ::Hash)
-      @_data = ::Hash(String, String).new
-      @_index = ::Hash(String, Type).new
+      initialize()
 
-      self._data = self._clone(data) as ::Hash
-      self._index = self._build_index(self._data)
+      # build index
+      self._index = self._build_index(data)
     end
 
     def [](key : String)
@@ -25,7 +30,8 @@ module Config
     def get(key : String)
       value = self._index.fetch(key, nil)
       if (value != nil)
-        return self._clone(value)
+        value = (value as Val).value
+        return self._clone_value(value)
       end
 
       return value
@@ -40,36 +46,25 @@ module Config
     end
 
     def merge(other : Hash)
-      data = self.to_h
-      data = data.merge(other._data)
+      new_cfg = Hash.new
+      new_cfg._index = self._index.merge(other._index)
 
-      return Hash.new(data)
+      return new_cfg
     end
 
     def merge!(other : Hash)
       merged = self.merge(other)
-      self._data = merged._data
       self._index = merged._index
 
       return self
     end
-
-    def to_h
-      return self._clone(@_data) as ::Hash
-    end
-
-    protected def _data
-      return @_data
+  
+    protected def _clone_value(value)
+      return value.clone
     end
 
     protected def _index
       return @_index
-    end
-
-    protected def _data=(value : ::Hash)
-      @_data = value
-
-      return value
     end
 
     protected def _index=(value : ::Hash)
@@ -78,21 +73,17 @@ module Config
       return value
     end
 
-    protected def _clone(data)
-      json = data.to_json
-      copy = JSON.parse(json)
-
-      return copy
-    end
-
     protected def _build_index(data : ::Hash, root = "" : String)
-      index = ::Hash(String, Type).new
+      index = {} of String => Val
       data.keys.each do |key|
         value = data[key]
 
+        # clone value
+        new_value = self._clone_value(value)
+
         # create the key in index
-        index_key = (root.size > 0 ? "#{root}." : "") + key
-        index[index_key] = value
+        index_key = (root.size > 0 ? "#{root}." : "") + (key as String)
+        index[index_key] = Val.new(new_value)
 
         # if value is an hash, index it
         if (value.is_a?(::Hash))

@@ -24,15 +24,9 @@ module Config
     def merge(other : Hash)
       merged = super(other)
       new_obj = Yaml.new(self.filename)
-      new_obj._data = merged._data
+      new_obj._index = merged._index
 
       return new_obj
-    end
-
-    def merge!(other : Hash)
-      self._data = self.merge(other)._data
-
-      return self
     end
   end
 end
