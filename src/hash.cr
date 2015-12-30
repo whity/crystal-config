@@ -23,8 +23,12 @@ module Config
       self._index = self._build_index(data)
     end
 
-    def [](key : String)
+    def [](key)
       return self.get(key)
+    end
+
+    def []=(key, value)
+      return self.set(key, value)
     end
 
     def get(key : String)
@@ -33,6 +37,15 @@ module Config
         value = (value as Val).value
         return self._clone_value(value)
       end
+
+      return value
+    end
+    
+    def set(key : String, value)
+      data = {key => value}
+      data_index = self._build_index(data)
+
+      self._index.merge!(data_index)
 
       return value
     end

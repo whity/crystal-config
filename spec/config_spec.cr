@@ -29,4 +29,13 @@ describe "Config" do
     c = from_yaml
     c.has_key?("xpto").should(eq(false))
   end
+
+  it "set" do
+    c = from_yaml
+
+    set = {"12" => 12}
+    c["set"] = set
+
+    c["set.12"].should(eq(set["12"]))
+  end
 end
