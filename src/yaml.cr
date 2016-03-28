@@ -11,10 +11,8 @@ module Config
         raise ArgumentError.new("invalid file '#{file}'")
       end
 
-      data = ::YAML.load(File.open(file).gets_to_end)
-      if (!data)
-        data = ::Hash(String, ::YAML::Type).new
-      end
+      data = ::YAML.parse(File.open(file).gets_to_end)
+      data = data ? data.as_h : (::Hash(String, ::YAML::Type).new)
 
       @filename = file
 
