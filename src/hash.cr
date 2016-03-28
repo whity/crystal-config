@@ -86,7 +86,7 @@ module Config
       return value
     end
 
-    protected def _build_index(data : ::Hash, root = "" : String)
+    protected def _build_index(data : ::Hash, root : String = "")
       index = {} of String => Val
       data.keys.each do |key|
         value = data[key]
