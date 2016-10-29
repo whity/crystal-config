@@ -33,7 +33,7 @@ describe "Config" do
   it "set" do
     c = from_yaml
 
-    set = {"12" => 12}
+    set = {"12" => "12"}
     c["set"] = set
 
     c["set.12"].should(eq(set["12"]))

@@ -12,7 +12,7 @@ module Config
       end
 
       data = ::YAML.parse(File.open(file).gets_to_end)
-      data = data ? data.as_h : (::Hash(String, ::YAML::Type).new)
+      data = data ? data.as_h : (::Hash(String, Hash::Value).new)
 
       @filename = file
 

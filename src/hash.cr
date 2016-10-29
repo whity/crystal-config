@@ -1,19 +1,11 @@
-require "json"
 require "./version"
 
 module Config
   class Hash
-    class Val
-      getter :value
+    alias Value = String | Array(Value) | ::Hash(String, Value)
 
-      def initialize(@value)
-      end
-    end
-
-    #alias Value = Val | Array(Value) | ::Hash(String, Value)
-    
     def initialize()
-      @_index = {} of String => Val
+      @_index = {} of String => Value
     end
 
     def initialize(data : ::Hash)
@@ -34,13 +26,12 @@ module Config
     def get(key : String)
       value = self._index.fetch(key, nil)
       if (value != nil)
-        value = (value as Val).value
         return self._clone_value(value)
       end
 
       return value
     end
-    
+
     def set(key : String, value)
       data = {key => value}
       data_index = self._build_index(data)
@@ -71,7 +62,7 @@ module Config
 
       return self
     end
-  
+
     protected def _clone_value(value)
       return value.clone
     end
@@ -87,16 +78,14 @@ module Config
     end
 
     protected def _build_index(data : ::Hash, root : String = "")
-      index = {} of String => Val
-      data.keys.each do |key|
-        value = data[key]
-
-        # clone value
-        new_value = self._clone_value(value)
+      fixed_data = self._convert_data(data).as(::Hash)
+      index = {} of String => Value
+      fixed_data.keys.each do |key|
+        value = fixed_data[key]
 
         # create the key in index
-        index_key = (root.size > 0 ? "#{root}." : "") + (key as String)
-        index[index_key] = Val.new(new_value)
+        index_key = (root.size > 0 ? "#{root}." : "") + key
+        index[index_key] = value
 
         # if value is an hash, index it
         if (value.is_a?(::Hash))
@@ -104,7 +93,29 @@ module Config
         end
       end
 
-      return index as ::Hash
+      return index.as(::Hash)
+    end
+
+    protected def _convert_data(data)
+      if (data.is_a?(::Hash))
+        new_data = {} of String => Value
+        data.keys.each do |key|
+          new_data[key.as(String)] = self._convert_data(data[key])
+        end
+
+        return new_data
+      end
+
+      if (data.is_a?(::Array))
+        new_data = [] of Value
+        data.each do |item|
+          new_data.push(self._convert_data(item))
+        end
+
+        return new_data
+      end
+
+      return sprintf("%s", data)
     end
   end
 end
